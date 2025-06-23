@@ -1,0 +1,548 @@
+{% extends "base.html" %}
+
+{% block additional_styles %}
+<style>
+    .genre-section {
+        margin-bottom: 50px;
+        padding: 20px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    .genre-title {
+        margin-bottom: 15px;
+        color: #f7971e;
+        font-size: 2rem;
+        text-transform: uppercase;
+        border-bottom: 2px solid #f7971e;
+        padding-bottom: 5px;
+    }
+    .movie-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 20px;
+        margin-top: 20px;
+    }
+    .movie-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s;
+        max-width: 200px;
+        margin: 0 auto;
+        position: relative;
+    }
+    .movie-card:hover {
+        transform: scale(1.05);
+        box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+    }
+    .movie-poster {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+    }
+    .movie-info {
+        padding: 10px;
+        text-align: center;
+        width: 100%;
+    }
+    .movie-title {
+        font-size: 1rem;
+        margin-bottom: 5px;
+        color: white;
+        font-weight: bold;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 180px;
+    }
+    .movie-year, .movie-rating {
+        font-size: 0.8rem;
+        color: #ccc;
+    }
+    .genre-nav {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+        margin-bottom: 20px;
+        justify-content: center;
+        padding: 10px;
+        background-color: rgba(0, 0, 0, 0.5);
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        position: sticky;
+        top: 70px;
+        z-index: 100;
+    }
+    .genre-link {
+        padding: 5px 15px;
+        background-color: #f7971e;
+        color: white;
+        border-radius: 20px;
+        text-decoration: none;
+        transition: all 0.3s;
+    }
+    .genre-link:hover {
+        background-color: #ffd452;
+        color: #333;
+    }
+    .movie-count {
+        font-size: 0.9rem;
+        color: #ccc;
+        margin-left: 10px;
+    }
+    .no-poster {
+        width: 100%;
+        height: 300px;
+        background-color: #333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ccc;
+        font-size: 1rem;
+        text-align: center;
+        padding: 10px;
+    }
+    #back-to-top {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #f7971e;
+        color: white;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+    #back-to-top.visible {
+        opacity: 1;
+    }
+    .main-container {
+        padding-top: 100px;
+        max-width: 1400px;
+        margin: 0 auto;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    .page-title {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2.5rem;
+        color: #f7971e;
+    }
+    .page-description {
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto 40px;
+        color: #ccc;
+        line-height: 1.6;
+    }
+    .active-page {
+        background-color: #f7971e;
+        color: white;
+    }
+    .nav-links li {
+        position: relative;
+    }
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: -30px;
+        background-color: rgba(0, 0, 0, 0.9);
+        min-width: 200px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        border-radius: 4px;
+        z-index: 1000;
+        padding: 8px 0;
+    }
+    .nav-links li:hover .dropdown-menu {
+        display: block;
+    }
+    .dropdown-menu a {
+        color: white;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        transition: background-color 0.3s;
+        white-space: nowrap;
+    }
+    .dropdown-menu a:hover {
+        background-color: rgba(247, 151, 30, 0.2);
+    }
+    .dropdown-menu a.active {
+        background-color: rgba(247, 151, 30, 0.3);
+    }
+    @media screen and (max-width: 768px) {
+        .dropdown-menu {
+            position: static;
+            background-color: transparent;
+            box-shadow: none;
+            padding-left: 20px;
+        }
+        .dropdown-menu a {
+            padding: 10px 15px;
+        }
+    }
+    .show-more-btn {
+        display: block;
+        margin: 20px auto;
+        padding: 10px 20px;
+        background-color: #011b37;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        transition: background-color 0.3s;
+    }
+    .show-more-btn:hover {
+        background-color: #0056b3;
+    }
+    .pagination {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-top: 20px;
+    }
+    .pagination a {
+        padding: 8px 16px;
+        background-color: #04376e;
+        color: white;
+        text-decoration: none;
+        border-radius: 25px;
+        transition: background-color 0.3s;
+    }
+    .pagination a:hover {
+        background-color: #0056b3;
+    }
+    .pagination .active {
+        background-color: #0056b3;
+    }
+    /* Add styles for the genre-specific pagination */
+    .ctn {
+        background-color: #043b76;
+        color: white;
+        padding: 8px 16px;
+        border-radius: 25px;
+        text-decoration: none;
+        transition: background-color 0.3s;
+    }
+    .ctn:hover {
+        background-color: #0056b3;
+    }
+    .active-page {
+        background-color: #0056b3 !important;
+        color: white;
+    }
+    .like-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: rgba(0,0,0,0.55);
+        border: none;
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1.3rem;
+        cursor: pointer;
+        z-index: 2;
+        transition: background 0.2s, color 0.2s;
+    }
+    .like-btn i {
+        transition: color 0.3s, transform 0.2s;
+    }
+    .like-btn.liked {
+        background: #f7251e77;
+        color: #fff;
+    }
+    .like-btn.liked i {
+        color: #ff2222 !important;
+        transform: scale(1.2);
+    }
+    .like-btn:active i {
+        opacity: 0.7;
+        transform: scale(0.9);
+    }
+    .user-icon-container {
+        position: relative;
+        display: inline-block;
+    }
+    .user-icon {
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        transition: color 0.3s;
+    }
+    .user-icon:hover {
+        color: #0047b3;
+    }
+    .user-tooltip {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 6px;
+        font-size: 14px;
+        white-space: nowrap;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+    }
+    .user-icon-container:hover .user-tooltip {
+        display: block;
+        opacity: 1;
+    }
+    .user-tooltip::after {
+        content: '';
+        position: absolute;
+        top: -5px;
+        right: 20px;
+        width: 10px;
+        height: 10px;
+        background: rgba(0, 0, 0, 0.9);
+        transform: rotate(45deg);
+        border-left: 1px solid #0047b3;
+        border-top: 1px solid #0047b3;
+    }
+    .footer {
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        text-align: center;
+        padding: 20px 0;
+        margin-top: 50px;
+        border-top: 2px solid #0047b3;
+    }
+    .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    .footer span {
+        font-size: 14px;
+        color: #999;
+    }
+    @media screen and (max-width: 768px) {
+        .dropdown-menu {
+            position: static;
+            background-color: transparent;
+            box-shadow: none;
+            padding-left: 20px;
+        }
+        .dropdown-menu a {
+            padding: 10px 15px;
+        }
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <h1 class="page-title">All Movies by Genre</h1>
+    <p class="page-description">
+        Explore our extensive collection of movies categorized by genre. 
+        Click on any genre below to jump directly to that section, or scroll through all categories to discover new films.
+    </p>
+
+    <!-- Search bar -->
+    <div style="display: flex; justify-content: flex-end; align-items: center; margin-bottom: 20px;">
+        <form action="/genres" method="get" style="display: flex; align-items: center; gap: 8px;">
+            <input type="text" name="search" placeholder="Search for a movie..." value="{{ request.args.get('search', '') }}" style="padding: 8px 14px; border-radius: 20px; border: 1px solid #ccc; font-size: 1rem; min-width: 220px; outline: none;">
+            <button type="submit" class="ctn" style="padding: 8px 18px; border-radius: 20px; font-size: 1rem;">Search</button>
+        </form>
+    </div>
+
+    {% if error %}
+    <div class="error-message" style="text-align: center; color: #ff6b6b; margin: 20px 0; padding: 15px; background-color: rgba(255, 107, 107, 0.1); border: 1px solid #ff6b6b; border-radius: 8px; font-size: 1.1rem;">
+        <i class="fa fa-exclamation-triangle" style="margin-right: 8px;"></i>
+        {{ error }}
+    </div>
+    {% endif %}
+
+    {% if search_results is defined and search_results %}
+    <!-- Back to All Movies button -->
+    <div style="text-align: left; margin-bottom: 20px;">
+        <a href="/genres" class="ctn" style="background: #0047b3; color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: 600; transition: background 0.3s ease; display: inline-block;">
+            <i class="fa fa-arrow-left" style="margin-right: 8px;"></i>
+            Back to All Movies
+        </a>
+    </div>
+    <div class="genre-section" id="search-results">
+        <h2 class="genre-title">Search Results <span class="movie-count">({{ search_results|length }} found)</span></h2>
+        <div class="movie-grid">
+            {% for movie in search_results %}
+            <div class="movie-card">
+                <button class="like-btn" title="Like"><i class="fa fa-heart"></i></button>
+                <a href="/movie/{{ movie.titre }}">
+                    {% if movie.poster %}
+                    <img src="{{ movie.poster }}" alt="{{ movie.titre }}" class="movie-poster">
+                    {% else %}
+                    <div class="no-poster">No poster available for {{ movie.titre }}</div>
+                    {% endif %}
+                    <div class="movie-info">
+                        <div class="movie-title">{{ movie.titre }}</div>
+                        <div class="movie-year">{{ movie.year }}</div>
+                        <div class="movie-rating">{{ movie.rating }}</div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% else %}
+    <!-- Genre navigation -->
+    <div class="genre-nav">
+        {% for genre in genres %}
+            <a href="/genre/{{ genre|urlencode }}" class="genre-link">{{ genre }}</a>
+        {% endfor %}
+    </div>
+
+    <!-- Movies by genre -->
+    {% if movies_by_genre is defined %}
+    {% for genre, movies in movies_by_genre.items() %}
+    <div class="genre-section" id="{{ genre.replace(' ', '-') }}">
+        <h2 class="genre-title">{{ genre }} <span class="movie-count">({{ movies|length }} of {{ genre_counts[genre] }} movies)</span></h2>
+        <div class="movie-grid">
+            {% for movie in movies %}
+            <div class="movie-card">
+                <button class="like-btn" title="Like"><i class="fa fa-heart"></i></button>
+                <a href="/movie/{{ movie.titre }}">
+                    {% if movie.poster %}
+                    <img src="{{ movie.poster }}" alt="{{ movie.titre }}" class="movie-poster">
+                    {% else %}
+                    <div class="no-poster">No poster available for {{ movie.titre }}</div>
+                    {% endif %}
+                    <div class="movie-info">
+                        <div class="movie-title">{{ movie.titre }}</div>
+                        <div class="movie-year">{{ movie.year }}</div>
+                        <div class="movie-rating">{{ movie.rating }}</div>
+                    </div>
+                </a>
+            </div>
+            {% endfor %}
+        </div>
+        {% if genre_counts[genre] > 12 %}
+        <div style="text-align:center; margin-top:20px;">
+            <a href="/genre/{{ genre|urlencode }}" class="ctn">Show more</a>
+        </div>
+        {% endif %}
+    </div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Pagination controls -->
+    <div style="display: flex; justify-content: center; margin-top: 20px; margin-bottom: 20px;">
+        {% if has_prev %}
+        <a href="{{ url_for('all_movies_by_genre', page=page-1, search=request.args.get('search', '')) }}" class="ctn" style="margin-right: 10px;">&larr;</a>
+        {% endif %}
+        {% for p in range(1, total_pages + 1) %}
+        <a href="{{ url_for('all_movies_by_genre', page=p, search=request.args.get('search', '')) }}" class="ctn {% if p == page %}active-page{% endif %}" style="margin: 0 5px;">{{ p }}</a>
+        {% endfor %}
+        {% if has_next %}
+        <a href="{{ url_for('all_movies_by_genre', page=page+1, search=request.args.get('search', '')) }}" class="ctn" style="margin-left: 10px;">&rarr;</a>
+        {% endif %}
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Mobile menu toggle
+    const menuBtn = document.querySelector(".menu-btn");
+    const navLinks = document.querySelector(".nav-links");
+    menuBtn.addEventListener("click", () => {
+        navLinks.classList.toggle("mobile-menu");
+    });
+
+    // Back to top button
+    const backToTopButton = document.getElementById("back-to-top");
+    window.addEventListener("scroll", () => {
+        if (window.pageYOffset > 300) {
+            backToTopButton.classList.add("visible");
+        } else {
+            backToTopButton.classList.remove("visible");
+        }
+    });
+    
+    backToTopButton.addEventListener("click", () => {
+        window.scrollTo({ top: 0, behavior: "smooth" });
+    });
+
+    // Your Firebase config here (if not already present)
+    if (!firebase.apps.length) {
+      // TODO: Replace the below config with your actual Firebase project config from the Firebase Console
+      firebase.initializeApp({
+        apiKey: "AIzaSyB-IsP8uobDlwe0yLmwkzfZLRpSbMoGUDY",
+        authDomain: "filmology-main.firebaseapp.com",
+        projectId: "filmology-main",
+        // ...other config values...
+      });
+    }
+    // Wait for auth state
+    firebase.auth().onAuthStateChanged(function(user) {
+        // Handle user tooltip
+        const userTooltip = document.getElementById('userTooltip');
+        const userIcon = document.querySelector('.user-icon-container a');
+        
+        if (user) {
+            // User is signed in
+            const displayName = user.displayName || user.email.split('@')[0];
+            userTooltip.textContent = displayName;
+            userTooltip.style.display = 'block';
+            userIcon.href = '/dashboard'; // Link to dashboard when logged in
+        } else {
+            // No user is signed in
+            userTooltip.style.display = 'none';
+            userIcon.href = '/auth_page'; // Link to auth page when not logged in
+        }
+
+        // Handle favorites (existing logic)
+        if (!user) return;
+        const uid = user.uid;
+        // Fetch favorites
+        firebase.firestore().collection('favorites').doc(uid).get().then(doc => {
+            const favs = (doc.exists && doc.data().movies) ? doc.data().movies : [];
+            document.querySelectorAll('.movie-card').forEach(card => {
+                const title = card.querySelector('.movie-title').textContent.trim();
+                const likeBtn = card.querySelector('.like-btn');
+                if (favs.includes(title)) {
+                    likeBtn.classList.add('liked');
+                }
+                likeBtn.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    if (!firebase.auth().currentUser) {
+                        alert('You must be logged in to add favorites!');
+                        return;
+                    }
+                    if (likeBtn.classList.contains('liked')) {
+                        // Remove from favorites
+                        firebase.firestore().collection('favorites').doc(uid).set({ movies: firebase.firestore.FieldValue.arrayRemove(title) }, { merge: true });
+                        likeBtn.classList.remove('liked');
+                    } else {
+                        // Add to favorites
+                        firebase.firestore().collection('favorites').doc(uid).set({ movies: firebase.firestore.FieldValue.arrayUnion(title) }, { merge: true });
+                        likeBtn.classList.add('liked');
+                    }
+                });
+            });
+        });
+    });
+</script>
+{% endblock %}

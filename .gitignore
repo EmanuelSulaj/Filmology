@@ -1,0 +1,23 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Venv
+venv/
+.venv/
+env/
+.env
+
+# Service Account Key
+serviceAccountKey.json
+
+# IDE / Editor specific
+.vscode/
+.idea/
+*.swp
+
+# OS-specific
+.DS_Store
+Thumbs.db 

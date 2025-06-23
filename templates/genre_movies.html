@@ -1,0 +1,54 @@
+{% extends "base.html" %}
+
+{% block content %}
+<div class="main-container">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+        <a href="/genres" class="ctn" style="background-color: #043b76; text-decoration: none;">&larr; Back to All Movies</a>
+        <h1 class="page-title" style="margin-bottom: 0;">{{ genre }} Movies</h1>
+        <div style="width: 200px;"></div>
+    </div>
+    <div class="genre-section">
+        <div class="movie-grid">
+            {% for movie in movies %}
+            <a href="/movie/{{ movie.titre }}" class="movie-card">
+                {% if movie.poster %}
+                <img src="{{ movie.poster }}" alt="{{ movie.titre }}" class="movie-poster">
+                {% else %}
+                <div class="no-poster">No poster available for {{ movie.titre }}</div>
+                {% endif %}
+                <div class="movie-info">
+                    <div class="movie-title">{{ movie.titre }}</div>
+                    <div class="movie-year">{{ movie.year }}</div>
+                    <div class="movie-rating">{{ movie.rating }}</div>
+                </div>
+            </a>
+            {% endfor %}
+        </div>
+    </div>
+    <div style="text-align:center; margin: 30px 0;">
+        {% if total_pages > 1 %}
+            <div class="pagination">
+                {% set group = ((page-1) // 5) %}
+                {% set start_page = group * 5 + 1 %}
+                {% set end_page = [start_page + 4, total_pages]|min %}
+                {% if start_page > 1 %}
+                    <a href="/genre/{{ genre|urlencode }}?page={{ start_page-1 }}" class="ctn">&larr;</a>
+                {% endif %}
+                {% for p in range(start_page, end_page+1) %}
+                    <a href="/genre/{{ genre|urlencode }}?page={{ p }}" class="ctn {% if p == page %}active-page{% endif %}">{{ p }}</a>
+                {% endfor %}
+                {% if end_page < total_pages %}
+                    <a href="/genre/{{ genre|urlencode }}?page={{ end_page+1 }}" class="ctn">&rarr;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // any genre-movies specific scripts can go here
+</script>
+{% endblock %} 

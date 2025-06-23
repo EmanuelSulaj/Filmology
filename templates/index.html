@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+
+{% block title %}Filmology{% endblock %}
+
+{% block content %}
+        <header id="home">
+            <div class="header-content">
+                <h2 id="quote">Dive into the World of Films</h2>
+                <div class="line"></div>
+                <h1>A CINEMATIC JOURNEY</h1>
+                <a
+                    href="#about"
+                    class="ctn"
+                    onclick='removeall(); $("#quad").css("border", "2px solid whitesmoke"); $("#quad").css("border-radius", "20px");'
+                    >Learn more</a
+                >
+                <a
+                    href="#recommendation"
+                    class="ctn"
+                    onclick='removeall(); $("#quad").css("border", "2px solid whitesmoke"); $("#quad").css("border-radius", "20px");'
+                    >Try Filmology</a
+                >
+            </div>
+        </header>
+
+        <!--Features-->
+        <section class="features" id="features">
+            <div class="container">
+                <div class="title">
+                    <h1 class="dark">Key Features</h1>
+                    <div class="line"></div>
+                </div>
+                <div class="row">
+                    <article class="card col">
+                        <img class="card-img" src="./static/feature1.png" />
+                        <h4 class="dark">Tailored Recommendations</h4>
+                        <p class="font-color">
+                            Discover movies tailored to your unique preferences and viewing history.
+                        </p>
+                        <a href="#" class="ctn">All Details</a>
+                    </article>
+                    <article class="card col">
+                        <img src="./static/feature2.jpg" />
+                        <h4 class="dark">Top Trending Movies</h4>
+                        <p class="font-color">
+                            Stay up-to-date with the latest and most popular films in the industry.
+                        </p>
+                        <a href="#" class="ctn">All Details</a>
+                    </article>
+                    <article class="card col">
+                        <img src="./static/feature3.jpg" />
+                        <h4 class="dark">Detailed Movie Insights</h4>
+                        <p class="font-color">
+                            Access in-depth reviews and ratings for all your favorite films.
+                        </p>
+                        <a href="#" class="ctn">All Details</a>
+                    </article>
+                </div>
+            </div>
+        </section>
+        <!--Features-->
+
+        <!--Recommendation-->
+        <section class="recommendation" id="recommendation" style="background-image: url('/static/batman-dark-3840x2160.jpg'); background-position: center; background-size: cover;">
+            <div class="recommendation-content">
+                <h1>FIND YOUR NEXT MOVIE</h1>
+                <div class="line"></div>
+                <p>
+                    "Movies transport us to different worlds, make us feel, think, and explore emotions in ways we never imagined."
+                    <br />Discover new films that match your taste with Filmology's recommendations.
+                </p>
+                <form action="{{ url_for('recommendation') }}#movie-details" method="POST">
+                    <input type="text" name="titre" placeholder="Enter a movie title..." required>
+                    <button type="submit" class="ctn"
+                    class="ctn"
+                    onclick='removeall(); $("#quad").css("border", "2px solid whitesmoke"); $("#quad").css("border-radius", "20px");'
+                    >Get Recommendations</button>
+                </form>
+            </div>
+        </section>
+        <!--Recommendation-->
+
+        <!-- About Section -->
+        <section class="about" id="about">
+            <div class="about-content">
+                <div class="about-text">
+                    <h2>About Filmology</h2>
+                    <div class="line"></div>
+                    <p>Filmology was inspired by a love for movies and the need for personalized recommendations.</p>
+                    <p>It's designed to help you discover films that suit your taste and make your movie nights even better.</p>
+                    <p>Check for more information about us!</p>
+                    <a href="/about" class="arrow-link"></a>
+                </div>
+                <div class="about-images">
+                    <img src="{{ url_for('static', filename='img3.png') }}" alt="Movie Poster 1">
+                    <img src="{{ url_for('static', filename='img4.jpg') }}" alt="Movie Poster 2">
+                    <img src="{{ url_for('static', filename='img5.jpg') }}" alt="Movie Poster 3">
+                    <img src="{{ url_for('static', filename='img6.jpg') }}" alt="Movie Poster 4">
+                </div>
+            </div>
+        </section>
+        <!-- About Section -->
+{% endblock %}
+
+{% block scripts %}
+        <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+        <script src="{{ url_for('static', filename='styles/script.js') }}"></script>
+{% endblock %}

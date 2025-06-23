@@ -1,0 +1,232 @@
+{% extends "base.html" %}
+
+{% block title %}Filmology - My Watchlist{% endblock %}
+
+{% block additional_styles %}
+<style>
+    .watchlist-container {
+        min-height: 100vh;
+        padding: 20px;
+        padding-top: 100px;
+        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                    url('../static/feature1.png') center/cover no-repeat fixed;
+    }
+    .watchlist-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: rgba(0, 0, 0, 0.9);
+        border-radius: 15px;
+        border: 2px solid #0047b3;
+        color: white;
+    }
+    .watchlist-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 2rem;
+        padding-bottom: 1rem;
+        border-bottom: 1px solid #0047b3;
+    }
+    .watchlist-header h1 {
+        color: #0047b3;
+        margin: 0;
+        font-size: 2rem;
+    }
+    .movies-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+        gap: 2rem;
+        margin-top: 2rem;
+    }
+    .movie-card {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 10px;
+        overflow: hidden;
+        transition: transform 0.3s ease;
+        border: 1px solid #0047b3;
+        position: relative;
+    }
+    .movie-card:hover {
+        transform: translateY(-5px);
+    }
+    .movie-poster {
+        width: 100%;
+        height: 300px;
+        object-fit: cover;
+    }
+    .movie-info {
+        padding: 1rem;
+    }
+    .movie-title {
+        color: white;
+        margin: 0 0 0.5rem 0;
+        font-size: 1.1rem;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    .movie-year {
+        color: #999;
+        font-size: 0.9rem;
+    }
+    .remove-btn {
+        background: #ff4444;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 5px;
+        cursor: pointer;
+        width: 100%;
+        margin-top: 10px;
+        transition: all 0.3s ease;
+    }
+    .remove-btn:hover {
+        background: #cc0000;
+    }
+    .empty-watchlist {
+        text-align: center;
+        padding: 3rem;
+        color: #999;
+        grid-column: 1 / -1;
+    }
+    .empty-watchlist i {
+        font-size: 3rem;
+        margin-bottom: 1rem;
+        color: #0047b3;
+    }
+    .movie-link {
+        text-decoration: none;
+        color: inherit;
+    }
+    .loading {
+        text-align: center;
+        padding: 2rem;
+        color: #999;
+        grid-column: 1 / -1;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="watchlist-container">
+    <div class="watchlist-content">
+        <div class="watchlist-header">
+            <h1>My Watchlist</h1>
+        </div>
+        
+        <div id="watchlistMovies" class="movies-grid">
+            <div class="loading">
+                <i class="fa fa-spinner fa-spin fa-2x"></i>
+                <p>Loading your watchlist...</p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize Firestore
+    const db = firebase.firestore();
+    let currentUser = null;
+
+    // Check authentication state
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+            currentUser = user;
+            loadWatchlist();
+        } else {
+            window.location.href = '/auth_page';
+        }
+    });
+
+    async function loadWatchlist() {
+        const watchlistContainer = document.getElementById('watchlistMovies');
+        
+        try {
+            const watchlistRef = db.collection('watchlists').doc(currentUser.uid);
+            const doc = await watchlistRef.get();
+            
+            if (!doc.exists || !doc.data().movies || doc.data().movies.length === 0) {
+                watchlistContainer.innerHTML = `
+                    <div class="empty-watchlist">
+                        <i class="fa fa-film"></i>
+                        <h2>Your watchlist is empty</h2>
+                        <p>Add movies to your watchlist to see them here</p>
+                    </div>
+                `;
+                return;
+            }
+
+            const movies = doc.data().movies;
+            watchlistContainer.innerHTML = '';
+
+            // Fetch movie details for each movie ID
+            for (const movieId of movies) {
+                try {
+                    // First, get the movie title from TMDb
+                    const response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}?api_key=68a8391a9f7261e55b970041843f231f`);
+                    if (!response.ok) {
+                        throw new Error('Failed to fetch movie details');
+                    }
+                    const movieData = await response.json();
+                    
+                    const movieCard = document.createElement('div');
+                    movieCard.className = 'movie-card';
+                    movieCard.innerHTML = `
+                        <a href="/movie/${encodeURIComponent(movieData.title)}" class="movie-link">
+                            <img src="https://image.tmdb.org/t/p/w500${movieData.poster_path}" 
+                                 alt="${movieData.title}" 
+                                 class="movie-poster">
+                            <div class="movie-info">
+                                <h3 class="movie-title">${movieData.title}</h3>
+                                <p class="movie-year">${movieData.release_date.split('-')[0]}</p>
+                            </div>
+                        </a>
+                        <button class="remove-btn" onclick="removeFromWatchlist('${movieId}')">
+                            Remove from Watchlist
+                        </button>
+                    `;
+                    watchlistContainer.appendChild(movieCard);
+                } catch (error) {
+                    console.error('Error fetching movie details:', error);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading watchlist:', error);
+            watchlistContainer.innerHTML = `
+                <div class="empty-watchlist">
+                    <i class="fa fa-exclamation-circle"></i>
+                    <h2>Error loading watchlist</h2>
+                    <p>Please try again later</p>
+                </div>
+            `;
+        }
+    }
+
+    async function removeFromWatchlist(movieId) {
+        if (!currentUser) return;
+
+        try {
+            const watchlistRef = db.collection('watchlists').doc(currentUser.uid);
+            const doc = await watchlistRef.get();
+            
+            if (doc.exists) {
+                const movies = doc.data().movies || [];
+                const updatedMovies = movies.filter(id => id !== movieId);
+                
+                await watchlistRef.update({
+                    movies: updatedMovies,
+                    updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                });
+                
+                // Reload the watchlist
+                loadWatchlist();
+            }
+        } catch (error) {
+            console.error('Error removing movie:', error);
+        }
+    }
+</script>
+{% endblock %} 

@@ -1,0 +1,183 @@
+{% extends "base.html" %}
+
+{% block content %}
+<style>
+    .recommendation-card {
+        position: relative;
+        overflow: hidden;
+    }
+    .like-btn {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        z-index: 10;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(5px);
+        color: white;
+        border: 1px solid rgba(255, 255, 255, 0.3);
+        border-radius: 50%;
+        width: 36px;
+        height: 36px;
+        font-size: 16px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+    }
+    .like-btn:hover {
+        background: rgba(236, 70, 70, 0.8);
+        transform: scale(1.1);
+    }
+    .like-btn.liked {
+        background: #ec4646;
+        color: white;
+        border-color: #ec4646;
+    }
+    .like-btn .fa-heart {
+        transition: transform 0.2s ease-in-out;
+    }
+    .like-btn.liked .fa-heart {
+        transform: scale(1.2);
+    }
+</style>
+        <section class="recommendation" id="recommendation">
+            <div class="recommendation-content">
+                <h1>FIND YOUR NEXT MOVIE</h1>
+                <div class="line"></div>
+                <p>
+                    "Movies transport us to different worlds, make us feel, think, and explore emotions in ways we never imagined."
+                    <br />Discover new films that match your taste with Filmology's recommendations.
+                </p>
+                <form action="{{ url_for('recommendation') }}#movie-details" method="POST">
+                    <input type="text" name="titre" placeholder="Enter a movie title..." required>
+                    <button type="submit" class="ctn">Get Recommendations</button>
+                </form>
+            </div>
+        </section>
+
+        <!-- Movie Researched Details -->
+        <section id="movie-details" class="movie-details">
+            <div class="container">
+                {% if movie_exists %}
+                <h2>Details for "{{ movie_details.title }}":</h2>
+                <div class="row movie-details-row">
+                    <div class="col-md-4 movie-poster">
+                        <img src="https://image.tmdb.org/t/p/w500{{ movie_details.poster_path }}" alt="{{ movie_details.title }}" class="img-fluid">
+                    </div>
+                    <div class="col-md-8 movie-info">
+                        <p><strong>Release Date:</strong> {{ movie_details.release_date }}</p>
+                        <p><strong>Overview:</strong> {{ movie_details.overview }}</p>
+                    </div>
+                </div>
+
+                {% else %}
+                <p>No details available for this movie. It might not exist.</p>
+                {% endif %}
+            </div>
+        </section>
+
+        <!-- Recommendation Results -->
+        <section id="results" class="recommendations">
+            <div class="container">
+                {% if last_query %}
+                    {% if not recommendations_empty %}
+                        <h2>Recommendations for "{{ last_query }}":</h2>
+                <div class="recommendation-grid">
+                            {% for film in recommandations %}
+                    <div class="recommendation-card">
+                        <button class="like-btn" title="Like this movie" data-title="{{ film.titre }}"><i class="fa fa-heart"></i></button>
+                        <a href="{{ url_for('movie_detail', title=film.titre) }}">
+                                {% if film.poster %}
+                            <img src="{{ film.poster }}" alt="{{ film.titre }}" class="recommendation-poster">
+                                {% else %}
+                            <div class="no-poster">No poster available</div>
+                                {% endif %}
+                        </a>
+                        <div class="recommendation-title">{{ film.titre }}</div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                <!-- Back to All Movies button -->
+                <div style="text-align: center; margin-top: 40px;">
+                    <a href="/genres" class="ctn" style="background: #0047b3; color: white; padding: 12px 24px; border-radius: 25px; text-decoration: none; font-weight: 600; transition: background 0.3s ease; display: inline-block;">
+                        <i class="fa fa-arrow-left" style="margin-right: 8px;"></i>
+                        Back to All Movies
+                    </a>
+                        </div>
+                    {% endif %}
+                {% endif %}
+            </div>
+        </section>
+        <!-- End Recommendation Results -->
+
+        <!-- up scroll -->
+        <i class="arrow"  onclick="topFunction()" id="upbtn"></i>
+        <!-- end -->
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+        <script>
+    document.addEventListener('DOMContentLoaded', function() {
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (!user) {
+                // Not logged in, disable like buttons or show a prompt.
+                document.querySelectorAll('.recommendation-card .like-btn').forEach(likeBtn => {
+                    likeBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        alert('You must be logged in to like movies.');
+                        window.location.href = '/auth_page';
+                    });
+                });
+                return;
+            }
+
+            const uid = user.uid;
+            const db = firebase.firestore();
+            const favoritesRef = db.collection('favorites').doc(uid);
+
+            function setupLikeButtons(favs) {
+                document.querySelectorAll('.recommendation-card .like-btn').forEach(likeBtn => {
+                    const title = likeBtn.dataset.title;
+                    if (favs.includes(title)) {
+                        likeBtn.classList.add('liked');
+                    } else {
+                        likeBtn.classList.remove('liked');
+                    }
+
+                    if (likeBtn.listenerAttached) return;
+                    likeBtn.listenerAttached = true;
+
+                    likeBtn.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        if (likeBtn.classList.contains('liked')) {
+                            // Remove from favorites
+                            favoritesRef.update({
+                                movies: firebase.firestore.FieldValue.arrayRemove(title)
+                            });
+                        } else {
+                            // Add to favorites
+                            favoritesRef.set({
+                                movies: firebase.firestore.FieldValue.arrayUnion(title),
+                                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+                            }, { merge: true });
+                        }
+                    });
+                });
+            }
+
+            // Listen for real-time updates to favorites
+            favoritesRef.onSnapshot(doc => {
+                const favs = (doc.exists && doc.data().movies) ? doc.data().movies : [];
+                setupLikeButtons(favs);
+            });
+        });
+            });
+        </script>
+        <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+        <script src="{{ url_for('static', filename='styles/script.js') }}"></script>
+{% endblock %}

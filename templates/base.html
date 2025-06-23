@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <title>{% block title %}Filmology{% endblock %}</title>
+        <link
+            rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css"
+        />
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/style.css') }}"
+        />
+        <link
+            rel="stylesheet"
+            href="{{ url_for('static', filename='styles/responsive.css') }}"
+        />
+        <link
+            rel="apple-touch-icon"
+            sizes="180x180"
+            href="{{ url_for('static', filename='logo.png') }}"
+        />
+        <link
+            rel="icon" type="image/png"
+            sizes="32x32"
+            href="{{ url_for('static', filename='logo.png') }}"
+        />
+        <link
+            rel="icon" type="image/png"
+            sizes="16x16"
+            href="{{ url_for('static', filename='logo.png') }}"
+        />
+        <link rel="manifest" href="/site.webmanifest" />
+        <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+        <script>
+            const firebaseConfig = {
+                apiKey: "AIzaSyB-IsP8uobDlwe0yLmwkzfZLRpSbMoGUDY",
+                authDomain: "filmology-main.firebaseapp.com",
+                projectId: "filmology-main",
+                storageBucket: "filmology-main.appspot.com",
+                messagingSenderId: "599017519536",
+                appId: "1:599017519536:web:fb238a08853285efe27e75"
+            };
+            firebase.initializeApp(firebaseConfig);
+        </script>
+        <style>
+            .user-icon-container {
+                position: relative;
+                display: inline-block;
+            }
+            .user-icon {
+                color: white;
+                font-size: 24px;
+                cursor: pointer;
+                transition: color 0.3s;
+            }
+            .user-icon:hover {
+                color: #0047b3;
+            }
+            .user-tooltip {
+                display: none;
+                position: absolute;
+                top: 100%;
+                right: 0;
+                background: rgba(0, 0, 0, 0.9);
+                color: white;
+                padding: 8px 15px;
+                border-radius: 6px;
+                font-size: 14px;
+                white-space: nowrap;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(10px);
+                border: 1px solid #0047b3;
+                z-index: 1000;
+                opacity: 0;
+                transform: translateY(10px);
+                transition: all 0.3s ease;
+                margin-top: 10px;
+            }
+            .user-icon-container:hover .user-tooltip {
+                display: block;
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .user-tooltip::after {
+                content: '';
+                position: absolute;
+                top: -5px;
+                right: 20px;
+                width: 10px;
+                height: 10px;
+                background: rgba(0, 0, 0, 0.9);
+                transform: rotate(45deg);
+                border-left: 1px solid #0047b3;
+                border-top: 1px solid #0047b3;
+            }
+            .user-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                right: 0;
+                background: rgba(0, 0, 0, 0.9);
+                min-width: 200px;
+                border-radius: 8px;
+                padding: 10px 0;
+                margin-top: 10px;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(10px);
+                border: 1px solid #0047b3;
+                z-index: 1000;
+                opacity: 0;
+                transform: translateY(10px);
+                transition: all 0.3s ease;
+            }
+            .user-icon-container:hover .user-menu {
+                display: block;
+                opacity: 1;
+                transform: translateY(0);
+            }
+            .user-menu a {
+                display: block;
+                padding: 12px 20px;
+                color: white;
+                text-decoration: none;
+                transition: all 0.3s ease;
+            }
+            .user-menu a:hover {
+                background: rgba(0, 71, 179, 0.2);
+                color: #f7971e;
+            }
+            .user-menu .divider {
+                height: 1px;
+                background: rgba(255, 255, 255, 0.1);
+                margin: 5px 0;
+            }
+            .dropdown {
+                position: relative;
+            }
+            .dropdown-menu {
+                display: none;
+                position: absolute;
+                top: 100%;
+                left: 0;
+                background: rgba(0, 0, 0, 0.9);
+                min-width: 200px;
+                border-radius: 8px;
+                padding: 10px 0;
+                margin-top: 10px;
+                box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+                backdrop-filter: blur(10px);
+                border: 1px solid #0047b3;
+                z-index: 1000;
+            }
+            .dropdown:hover .dropdown-menu {
+                display: block;
+            }
+            .dropdown-menu a {
+                display: block;
+                padding: 12px 20px;
+                color: white;
+                text-decoration: none;
+                transition: all 0.3s ease;
+                text-align: left;
+            }
+            .dropdown-menu a:hover {
+                background: rgba(0, 71, 179, 0.2);
+                color: #f7971e;
+            }
+            .footer {
+                background: rgba(0, 0, 0, 0.9);
+                color: white;
+                text-align: center;
+                padding: 20px 0;
+                margin-top: 50px;
+                border-top: 2px solid #0047b3;
+            }
+            .footer-content {
+                max-width: 1200px;
+                margin: 0 auto;
+                padding: 0 20px;
+            }
+            .footer span {
+                font-size: 14px;
+                color: #999;
+            }
+        </style>
+        {% block additional_styles %}{% endblock %}
+        {% block head %}{% endblock %}
+    </head>
+    <body>
+        <!--navbar-->
+        <nav class="navbar glass" style="height: 70px">
+            <span>
+                <a href="/" style="display: flex; align-items: center">
+                    <img class="img2" src="./static/logo.png" width="45" style="margin: -25px -10px -25px -20px" />
+                    <h1 class="logo">&nbsp;Filmology</h1>
+                </a>
+            </span>
+            <ul class="nav-links">
+                <li>
+                    <a href="/" id="pri" class="active cir_border">Home</a>
+                </li>
+                <li>
+                    <a href="/#recommendation" id="tri" class="cir_border">Recommendation</a>
+                </li>
+                <li><a href="/genres" id="genres" class="cir_border">All Movies</a></li>
+                <li class="dropdown">
+                    <a href="#" class="cir_border">Top Movies</a>
+                    <div class="dropdown-menu">
+                        <a href="/top-movies">Top Rated Movies</a>
+                        <a href="/trending">Top Trending</a>
+                    </div>
+                </li>
+                <li><a href="/watchlist" class="cir_border">Watchlist</a></li>
+                <li><a href="/about" class="cir_border">About</a></li>
+                <li>
+                    <div class="user-icon-container">
+                        <a href="/dashboard" class="cir_border">
+                            <i class="fa fa-user-circle user-icon"></i>
+                        </a>
+                        <div class="user-tooltip" id="userTooltip">Loading...</div>
+                    </div>
+                </li>
+            </ul>
+            <img src="./static/menu-btn.png" alt="" class="menu-btn" />
+        </nav>
+        <!--navbar-->
+
+        {% block content %}{% endblock %}
+
+        <!-- Footer -->
+        <footer class="footer">
+            <div class="footer-content">
+                <span>Developed By Emanuel Sulaj | &#169; 2025 All rights reserved.</span>
+            </div>
+        </footer>
+
+        <div id="back-to-top">
+            <i class="fa fa-arrow-up"></i>
+        </div>
+
+        <script>
+            // Check authentication state
+            firebase.auth().onAuthStateChanged(function(user) {
+                const userTooltip = document.getElementById('userTooltip');
+                const userIcon = document.querySelector('.user-icon-container a');
+                
+                if (user) {
+                    // User is signed in
+                    const displayName = user.displayName || user.email.split('@')[0];
+                    userTooltip.textContent = displayName;
+                    userTooltip.style.display = 'block';
+                    userIcon.href = '/dashboard'; // Link to dashboard when logged in
+                } else {
+                    // No user is signed in
+                    userTooltip.style.display = 'none';
+                    userIcon.href = '/auth_page'; // Link to auth page when not logged in
+                }
+            });
+
+            // Mobile menu functionality
+            const menuBtn = document.querySelector(".menu-btn");
+            const navlinks = document.querySelector(".nav-links");
+
+            menuBtn.addEventListener("click", () => {
+                navlinks.classList.toggle("mobile-menu");
+            });
+        </script>
+        {% block scripts %}
+        <!-- Firebase -->
+        <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-app-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-auth-compat.js"></script>
+        <script src="https://www.gstatic.com/firebasejs/9.6.0/firebase-firestore-compat.js"></script>
+        <!-- Firebase Config served from backend -->
+        <script src="/firebase-config.js"></script>
+        <script>
+            // Initialize Firebase
+            firebase.initializeApp(firebaseConfig);
+
+            // Check authentication state for navbar
+            firebase.auth().onAuthStateChanged(function(user) {
+                const userTooltip = document.getElementById('userTooltip');
+                const userIconContainer = document.querySelector('.user-icon-container');
+
+                if (userIconContainer) {
+                    const userIcon = userIconContainer.querySelector('a');
+                    if (user) {
+                        // User is signed in
+                        const displayName = user.displayName || (user.email ? user.email.split('@')[0] : 'User');
+                        if(userTooltip) {
+                            userTooltip.textContent = displayName;
+                        }
+                        userIcon.href = '/dashboard';
+                    } else {
+                        // No user is signed in
+                        if(userTooltip) {
+                            userTooltip.textContent = 'Login/Register';
+                        }
+                        userIcon.href = '/auth_page';
+                    }
+                }
+            });
+        </script>
+
+        <!-- Other Scripts -->
+        <script src="https://code.jquery.com/jquery-3.6.0.js"></script>
+        <script src="{{ url_for('static', filename='styles/script.js') }}"></script>
+        {% endblock %}
+    </body>
+</html> 

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block additional_styles %}
+<style>
+    /* Your auth-specific styles can go here */
+</style>
+{% endblock %}
+
+{% block content %}
+<a href="/" class="back-home">
+    <i class="fa fa-arrow-left"></i>
+    Back to Home
+</a>
+<div class="auth-container">
+    <div class="auth-box">
+        <h2>Welcome to Filmology</h2>
+        
+        <div class="age-warning-banner">
+            <i class="fa fa-exclamation-triangle"></i>
+            <div>
+                <strong>Age Verification Required:</strong> This application contains content that may not be suitable for users under 18 years of age. You must be 18 or older to access this service.
+                <br><br>
+                <em>By proceeding, you acknowledge that you are responsible for providing accurate age information and that we are not liable for any misrepresentation of age by users.</em>
+            </div>
+        </div>
+        
+        <div id="errorMessage" class="error-message"></div>
+        <div id="successMessage" class="success-message"></div>
+
+        <!-- Login Form -->
+        <form id="loginForm" class="auth-form active">
+            <input type="email" id="loginEmail" class="auth-input" placeholder="Email" required>
+            <input type="password" id="loginPassword" class="auth-input" placeholder="Password" required>
+            <div class="age-verification">
+                <input type="checkbox" id="loginAgeCheck" required>
+                <span>I confirm that I am 18 years of age or older</span>
+            </div>
+            <button type="submit" class="auth-btn">Login</button>
+            <div class="divider"><span>or</span></div>
+            <button type="button" class="google-btn" onclick="signInWithGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                Continue with Google
+            </button>
+            <div class="auth-switch">
+                <p>Don't have an account? <a id="showRegister">Register</a></p>
+            </div>
+        </form>
+
+        <!-- Register Form -->
+        <form id="registerForm" class="auth-form">
+            <input type="text" id="registerUsername" class="auth-input" placeholder="Username" required>
+            <input type="email" id="registerEmail" class="auth-input" placeholder="Email" required>
+            <input type="password" id="registerPassword" class="auth-input" placeholder="Password" required>
+            <input type="password" id="registerConfirmPassword" class="auth-input" placeholder="Confirm Password" required>
+            <div class="age-verification">
+                <input type="checkbox" id="registerAgeCheck" required>
+                <span>I confirm that I am 18 years of age or older</span>
+            </div>
+            <button type="submit" class="auth-btn">Register</button>
+            <div class="divider"><span>or</span></div>
+            <button type="button" class="google-btn" onclick="signInWithGoogle()">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google">
+                Continue with Google
+            </button>
+            <div class="auth-switch">
+                <p>Already have an account? <a id="showLogin">Login</a></p>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Form switching logic
+    const loginForm = document.getElementById('loginForm');
+    const registerForm = document.getElementById('registerForm');
+    const showRegister = document.getElementById('showRegister');
+    const showLogin = document.getElementById('showLogin');
+    const errorMessage = document.getElementById('errorMessage');
+    const successMessage = document.getElementById('successMessage');
+
+    // Make age verification boxes clickable
+    document.querySelectorAll('.age-verification').forEach(box => {
+        box.addEventListener('click', function(e) {
+            if (e.target.type !== 'checkbox') {
+                const checkbox = this.querySelector('input[type="checkbox"]');
+                checkbox.checked = !checkbox.checked;
+            }
+        });
+    });
+
+    showRegister.onclick = function(e) {
+        e.preventDefault();
+        loginForm.classList.remove('active');
+        registerForm.classList.add('active');
+        errorMessage.style.display = 'none';
+        successMessage.style.display = 'none';
+    }
+
+    showLogin.onclick = function(e) {
+        e.preventDefault();
+        registerForm.classList.remove('active');
+        loginForm.classList.add('active');
+        errorMessage.style.display = 'none';
+        successMessage.style.display = 'none';
+    }
+
+    // Firebase Auth logic
+    loginForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('loginEmail').value;
+        const password = document.getElementById('loginPassword').value;
+        const ageCheck = document.getElementById('loginAgeCheck').checked;
+
+        if (!ageCheck) {
+            errorMessage.textContent = 'You must confirm that you are 18 years of age or older to continue.';
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+            return;
+        }
+
+        firebase.auth().signInWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                successMessage.textContent = 'Login successful! Redirecting...';
+                successMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            })
+            .catch((error) => {
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+            });
+    });
+
+    registerForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        const email = document.getElementById('registerEmail').value;
+        const password = document.getElementById('registerPassword').value;
+        const confirmPassword = document.getElementById('registerConfirmPassword').value;
+        const username = document.getElementById('registerUsername').value;
+        const ageCheck = document.getElementById('registerAgeCheck').checked;
+
+        if (!ageCheck) {
+            errorMessage.textContent = 'You must confirm that you are 18 years of age or older to continue.';
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+            return;
+        }
+
+        if (password !== confirmPassword) {
+            errorMessage.textContent = "Passwords don't match!";
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+            return;
+        }
+
+        firebase.auth().createUserWithEmailAndPassword(email, password)
+            .then((userCredential) => {
+                // Update the user's display name
+                return userCredential.user.updateProfile({
+                    displayName: username
+                });
+            })
+            .then(() => {
+                successMessage.textContent = 'Registration successful! Redirecting...';
+                successMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            })
+            .catch((error) => {
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+            });
+    });
+
+    // Google Sign In with age verification
+    function signInWithGoogle() {
+        // Show age verification prompt for Google sign-in
+        const ageConfirmed = confirm('By clicking OK, you confirm that you are 18 years of age or older and agree to access content that may contain adult material.');
+        
+        if (!ageConfirmed) {
+            errorMessage.textContent = 'You must be 18 years of age or older to access this application.';
+            errorMessage.style.display = 'block';
+            successMessage.style.display = 'none';
+            return;
+        }
+
+        const provider = new firebase.auth.GoogleAuthProvider();
+        firebase.auth().signInWithPopup(provider)
+            .then((result) => {
+                successMessage.textContent = 'Login successful! Redirecting...';
+                successMessage.style.display = 'block';
+                errorMessage.style.display = 'none';
+                setTimeout(() => {
+                    window.location.href = '/dashboard';
+                }, 1500);
+            })
+            .catch((error) => {
+                errorMessage.textContent = error.message;
+                errorMessage.style.display = 'block';
+                successMessage.style.display = 'none';
+            });
+    }
+</script>
+{% endblock %} 

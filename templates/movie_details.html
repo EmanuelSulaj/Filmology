@@ -1,0 +1,606 @@
+{% extends "base.html" %}
+
+{% block title %}{{ details.title }} - Filmology{% endblock %}
+
+{% block additional_styles %}
+    <style>
+    .movie-container {
+        min-height: 100vh;
+        padding: 20px;
+        padding-top: 100px;
+        background: linear-gradient(rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.7)),
+                    url('https://image.tmdb.org/t/p/original{{ details.backdrop_path }}') center/cover no-repeat fixed;
+    }
+    .movie-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 2rem;
+        background: rgba(0, 0, 0, 0.9);
+        border-radius: 15px;
+        border: 2px solid #0047b3;
+        color: white;
+    }
+    .movie-header {
+        display: flex;
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+      .movie-poster {
+        width: 300px;
+        border-radius: 10px;
+        border: 2px solid #0047b3;
+      }
+      .movie-info {
+        flex: 1;
+    }
+    .movie-title {
+        font-size: 2.5rem;
+        color: #0047b3;
+        margin: 0 0 1rem 0;
+    }
+    .movie-meta {
+        display: flex;
+        gap: 1rem;
+        margin-bottom: 1rem;
+        color: #999;
+    }
+    .movie-overview {
+        line-height: 1.6;
+        margin-bottom: 2rem;
+    }
+    .movie-genres {
+        display: flex;
+        gap: 0.5rem;
+        flex-wrap: wrap;
+        margin-bottom: 1rem;
+    }
+    .genre-tag {
+        background: #0047b3;
+        color: white;
+        padding: 0.5rem 1rem;
+        border-radius: 20px;
+        font-size: 0.9rem;
+    }
+    .back-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 0.5rem;
+        padding: 10px 20px;
+        background: #0047b3;
+        color: white;
+        border: none;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 16px;
+        text-decoration: none;
+        transition: all 0.3s ease;
+        margin-bottom: 20px;
+    }
+    .back-btn:hover {
+        background: #003d99;
+        transform: translateY(-2px);
+    }
+    .watchlist-action {
+        margin-top: 20px;
+        display: flex;
+        justify-content: center;
+    }
+    .watchlist-btn {
+        background: #0047b3;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 25px;
+        cursor: pointer;
+        font-size: 14px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.3s ease;
+        width: auto;
+        min-width: 150px;
+        justify-content: center;
+    }
+    .watchlist-btn:hover {
+        background: #003d99;
+        transform: translateY(-2px);
+    }
+    .watchlist-btn.remove {
+        background: #00C851;
+    }
+    .watchlist-btn.remove:hover {
+        background: #00994d;
+    }
+    .movie-details-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(0, 71, 179, 0.3);
+    }
+    .detail-item {
+        background: rgba(0, 71, 179, 0.1);
+        padding: 1rem;
+        border-radius: 10px;
+        border: 1px solid rgba(0, 71, 179, 0.3);
+    }
+    .detail-label {
+        color: #999;
+        font-size: 0.9rem;
+        margin-bottom: 0.5rem;
+    }
+    .detail-value {
+        color: white;
+        font-size: 1.1rem;
+    }
+    .movie-tagline {
+        font-style: italic;
+        color: #0047b3;
+        font-size: 1.2rem;
+        margin-bottom: 1.5rem;
+        text-align: center;
+    }
+    .movie-status {
+        display: inline-block;
+        padding: 0.3rem 0.8rem;
+        border-radius: 15px;
+        font-size: 0.9rem;
+        margin-bottom: 1rem;
+    }
+    .status-released {
+        background: #00C851;
+        color: white;
+    }
+    .status-rumored {
+        background: #ffbb33;
+        color: black;
+    }
+    .status-planned {
+        background: #33b5e5;
+        color: white;
+    }
+    .status-post-production {
+        background: #2BBBAD;
+        color: white;
+    }
+    .status-in-production {
+        background: #aa66cc;
+        color: white;
+    }
+    .status-canceled {
+        background: #ff4444;
+        color: white;
+    }
+    .cast-crew-section {
+        margin-top: 3rem;
+        padding-top: 2rem;
+        border-top: 1px solid rgba(0, 71, 179, 0.3);
+    }
+    
+    .section-title {
+        color: #0047b3;
+        font-size: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    
+    .cast-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    .cast-card {
+        background: rgba(0, 71, 179, 0.1);
+        border-radius: 10px;
+        overflow: hidden;
+        border: 1px solid rgba(0, 71, 179, 0.3);
+        transition: transform 0.3s ease;
+    }
+    
+    .cast-card:hover {
+        transform: translateY(-5px);
+    }
+    
+    .cast-image {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    
+    .cast-info {
+        padding: 1rem;
+    }
+    
+    .cast-name {
+        color: white;
+        font-size: 1rem;
+        margin: 0 0 0.3rem 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+    
+    .cast-character {
+        color: #999;
+        font-size: 0.9rem;
+        margin: 0;
+    }
+    
+    .crew-section {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        gap: 1.5rem;
+        margin-top: 2rem;
+    }
+    
+    .crew-card {
+        background: rgba(0, 71, 179, 0.1);
+        border-radius: 10px;
+        padding: 1rem;
+        border: 1px solid rgba(0, 71, 179, 0.3);
+    }
+    
+    .crew-title {
+        color: #0047b3;
+        font-size: 1.2rem;
+        margin-bottom: 1rem;
+    }
+    
+    .crew-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    
+    .crew-member {
+        color: white;
+        margin-bottom: 0.5rem;
+        display: flex;
+        align-items: center;
+        gap: 0.5rem;
+    }
+    
+    .crew-member img {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        object-fit: cover;
+    }
+    
+    .no-image {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background: #0047b3;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: white;
+        font-size: 0.8rem;
+    }
+    .watched-btn {
+        background: #801ef7;
+        color: white;
+    }
+    .watched-btn.watched {
+        background: #00C851;
+        color: white;
+    }
+    .watched-btn:hover {
+        background: #e67c00;
+    }
+    .watched-btn.watched:hover {
+        background: #00994d;
+      }
+    </style>
+{% endblock %}
+
+{% block content %}
+<div class="movie-container">
+    <div class="movie-content">
+        <a href="javascript:history.back()" class="back-btn">
+            <i class="fa fa-arrow-left"></i>
+            Back to Movies
+        </a>
+
+        <div class="watchlist-action">
+            <button id="watchlistBtn" class="watchlist-btn" onclick="toggleWatchlist()">
+                <i class="fa fa-bookmark"></i>
+                <span>Add to Watchlist</span>
+            </button>
+            <button id="watchedBtn" class="watchlist-btn watched-btn" style="margin-left: 16px;" onclick="toggleWatched()">
+                <i class="fa fa-eye"></i>
+                <span>Mark as Watched</span>
+            </button>
+        </div>
+
+        <div class="movie-header">
+            <img src="https://image.tmdb.org/t/p/w500{{ details.poster_path }}" alt="{{ details.title }}" class="movie-poster">
+            <div class="movie-info">
+                <h1 class="movie-title">{{ details.title }}</h1>
+                {% if details.tagline %}
+                <p class="movie-tagline">"{{ details.tagline }}"</p>
+                {% endif %}
+                {% if details.status %}
+                <span class="movie-status status-{{ details.status.lower() }}">{{ details.status }}</span>
+                {% endif %}
+                <div class="movie-meta">
+                    <span>{{ details.release_date.split('-')[0] }}</span>
+                    <span>•</span>
+                    <span>{{ details.runtime }} min</span>
+                    <span>•</span>
+                    <span>{{ details.vote_average }}/10</span>
+                </div>
+                <div class="movie-genres">
+                    {% for genre in details.genres %}
+                    <span class="genre-tag">{{ genre }}</span>
+                    {% endfor %}
+                </div>
+                <p class="movie-overview">{{ details.overview }}</p>
+            </div>
+        </div>
+
+        <div class="movie-details-grid">
+            {% if details.budget %}
+            <div class="detail-item">
+                <div class="detail-label">Budget</div>
+                <div class="detail-value">${{ "{:,}".format(details.budget) }}</div>
+            </div>
+            {% endif %}
+            
+            {% if details.revenue %}
+            <div class="detail-item">
+                <div class="detail-label">Revenue</div>
+                <div class="detail-value">${{ "{:,}".format(details.revenue) }}</div>
+          </div>
+            {% endif %}
+            
+            {% if details.popularity %}
+            <div class="detail-item">
+                <div class="detail-label">Popularity</div>
+                <div class="detail-value">{{ "{:,.0f}".format(details.popularity) }}</div>
+          </div>
+            {% endif %}
+            
+            {% if details.vote_count %}
+            <div class="detail-item">
+                <div class="detail-label">Vote Count</div>
+                <div class="detail-value">{{ "{:,}".format(details.vote_count) }}</div>
+            </div>
+            {% endif %}
+            
+            {% if details.original_title and details.original_title != details.title %}
+            <div class="detail-item">
+                <div class="detail-label">Original Title</div>
+                <div class="detail-value">{{ details.original_title }}</div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="cast-crew-section">
+            {% if details.cast %}
+            <h2 class="section-title">Cast</h2>
+            <div class="cast-grid">
+                {% for actor in details.cast %}
+                <div class="cast-card">
+                    {% if actor.profile_path %}
+                    <img src="https://image.tmdb.org/t/p/w185{{ actor.profile_path }}" 
+                         alt="{{ actor.name }}" 
+                         class="cast-image">
+                    {% else %}
+                    <div class="cast-image" style="background: #0047b3; display: flex; align-items: center; justify-content: center;">
+                        <i class="fa fa-user fa-3x" style="color: white;"></i>
+                    </div>
+                    {% endif %}
+                    <div class="cast-info">
+                        <h3 class="cast-name">{{ actor.name }}</h3>
+                        <p class="cast-character">{{ actor.character }}</p>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+            
+            <div class="crew-section">
+                {% if details.directors %}
+                <div class="crew-card">
+                    <h3 class="crew-title">Director{% if details.directors|length > 1 %}s{% endif %}</h3>
+                    <ul class="crew-list">
+                        {% for director in details.directors %}
+                        <li class="crew-member">
+                            {% if director.profile_path %}
+                            <img src="https://image.tmdb.org/t/p/w92{{ director.profile_path }}" 
+                                 alt="{{ director.name }}">
+                            {% else %}
+                            <div class="no-image">
+                                <i class="fa fa-user"></i>
+                            </div>
+                            {% endif %}
+                            {{ director.name }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+                
+                {% if details.writers %}
+                <div class="crew-card">
+                    <h3 class="crew-title">Writer{% if details.writers|length > 1 %}s{% endif %}</h3>
+                    <ul class="crew-list">
+                        {% for writer in details.writers %}
+                        <li class="crew-member">
+                            {% if writer.profile_path %}
+                            <img src="https://image.tmdb.org/t/p/w92{{ writer.profile_path }}" 
+                                 alt="{{ writer.name }}">
+                            {% else %}
+                            <div class="no-image">
+                                <i class="fa fa-user"></i>
+                            </div>
+                            {% endif %}
+                            {{ writer.name }}
+                        </li>
+                        {% endfor %}
+                    </ul>
+                </div>
+                {% endif %}
+          </div>
+        </div>
+      </div>
+    </div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Initialize Firebase
+    const db = firebase.firestore();
+    let isInWatchlist = false;
+    let isWatched = false;
+    let currentUser = null;
+
+    // Check if user is logged in and if movie is in watchlist
+    firebase.auth().onAuthStateChanged(function(user) {
+        if (user) {
+            currentUser = user;
+            checkWatchlistStatus();
+            checkWatchedStatus();
+        } else {
+            document.getElementById('watchlistBtn').style.display = 'none';
+            document.getElementById('watchedBtn').style.display = 'none';
+        }
+    });
+
+    // Check if movie is in user's watchlist
+    async function checkWatchlistStatus() {
+        try {
+            const watchlistRef = db.collection('watchlists').doc(currentUser.uid);
+            const doc = await watchlistRef.get();
+            
+            if (doc.exists) {
+                const watchlist = doc.data().movies || [];
+                isInWatchlist = watchlist.includes('{{ details.id }}');
+                updateWatchlistButton();
+            }
+        } catch (error) {
+            console.error("Error checking watchlist:", error);
+        }
+    }
+
+    // Toggle movie in watchlist
+    async function toggleWatchlist() {
+        if (!currentUser) {
+            window.location.href = '/auth_page';
+            return;
+        }
+
+        try {
+            const watchlistRef = db.collection('watchlists').doc(currentUser.uid);
+            const doc = await watchlistRef.get();
+            
+            let movies = [];
+            if (doc.exists) {
+                movies = doc.data().movies || [];
+            }
+
+            if (isInWatchlist) {
+                // Remove from watchlist
+                movies = movies.filter(id => id !== '{{ details.id }}');
+            } else {
+                // Add to watchlist
+                movies.push('{{ details.id }}');
+            }
+
+            await watchlistRef.set({
+                movies: movies,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+
+            isInWatchlist = !isInWatchlist;
+            updateWatchlistButton();
+        } catch (error) {
+            console.error("Error updating watchlist:", error);
+        }
+    }
+
+    // Update button appearance
+    function updateWatchlistButton() {
+        const btn = document.getElementById('watchlistBtn');
+        const icon = btn.querySelector('i');
+        const text = btn.querySelector('span');
+
+        if (isInWatchlist) {
+            btn.classList.add('remove');
+            icon.className = 'fa fa-check';
+            text.textContent = 'In Watchlist';
+        } else {
+            btn.classList.remove('remove');
+            icon.className = 'fa fa-bookmark';
+            text.textContent = 'Add to Watchlist';
+        }
+    }
+
+    // Check if movie is in user's watched list
+    async function checkWatchedStatus() {
+        try {
+            const watchedRef = db.collection('watchlists').doc(currentUser.uid);
+            const doc = await watchedRef.get();
+            if (doc.exists) {
+                const watched = doc.data().watched || [];
+                isWatched = watched.includes('{{ details.id }}');
+                updateWatchedButton();
+            }
+        } catch (error) {
+            console.error("Error checking watched status:", error);
+        }
+    }
+
+    // Toggle movie in watched list
+    async function toggleWatched() {
+        if (!currentUser) {
+            window.location.href = '/auth_page';
+            return;
+        }
+        try {
+            const watchedRef = db.collection('watchlists').doc(currentUser.uid);
+            const doc = await watchedRef.get();
+            let watched = [];
+            if (doc.exists) {
+                watched = doc.data().watched || [];
+            }
+            if (isWatched) {
+                // Remove from watched
+                watched = watched.filter(id => id !== '{{ details.id }}');
+            } else {
+                // Add to watched
+                watched.push('{{ details.id }}');
+            }
+            await watchedRef.set({
+                ...doc.exists ? doc.data() : {},
+                watched: watched,
+                updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+            });
+            isWatched = !isWatched;
+            updateWatchedButton();
+        } catch (error) {
+            console.error("Error updating watched list:", error);
+        }
+    }
+
+    // Update watched button appearance
+    function updateWatchedButton() {
+        const btn = document.getElementById('watchedBtn');
+        const icon = btn.querySelector('i');
+        const text = btn.querySelector('span');
+        if (isWatched) {
+            btn.classList.add('watched');
+            icon.className = 'fa fa-check';
+            text.textContent = 'Watched';
+        } else {
+            btn.classList.remove('watched');
+            icon.className = 'fa fa-eye';
+            text.textContent = 'Mark as Watched';
+        }
+    }
+    </script>
+{% endblock %}

@@ -1,0 +1,593 @@
+{% extends "base.html" %}
+
+{% block additional_styles %}
+<style>
+    .movie-section {
+        margin-bottom: 50px;
+        padding: 20px;
+        background-color: rgba(255, 255, 255, 0.1);
+        border-radius: 10px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        position: relative;
+    }
+    .section-title {
+        margin-bottom: 15px;
+        color: #f7971e;
+        font-size: 2rem;
+        text-transform: uppercase;
+        border-bottom: 2px solid #f7971e;
+        padding-bottom: 5px;
+    }
+    .movie-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+    }
+    .movie-item {
+        display: flex;
+        align-items: center;
+        padding: 15px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        transition: background-color 0.3s;
+    }
+    .movie-item:hover {
+        background-color: rgba(255, 255, 255, 0.05);
+    }
+    .movie-rank {
+        font-size: 1.5rem;
+        font-weight: bold;
+        color: #f7971e;
+        width: 40px;
+        text-align: center;
+        margin-right: 15px;
+    }
+    .movie-poster {
+        width: 50px;
+        height: 75px;
+        object-fit: cover;
+        margin-right: 20px;
+        border-radius: 4px;
+    }
+    .movie-info {
+        flex-grow: 1;
+        display: flex;
+        flex-direction: column;
+        gap: 4px;
+        padding-left: 0;
+    }
+    .movie-title {
+        font-size: 1.1rem;
+        color: white;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .movie-details {
+        display: inline-flex !important;
+        align-items: center !important;
+        color: #ccc;
+        font-size: 0.9rem;
+        white-space: nowrap !important;
+        gap: 1px !important;
+    }
+    .movie-year {
+        color: #ccc;
+        width: auto;
+        margin-right: 0;
+        padding-left: 0;
+    }
+    .movie-duration {
+        color: #ccc;
+        margin-right: 0;
+        padding-left: 0;
+    }
+    .movie-content-rating {
+        color: #817f7d;
+        font-weight: bold;
+        margin-right: 0;
+        padding-left: 0;
+    }
+    .movie-rating {
+        color: #f7971e;
+        font-weight: bold;
+        margin-right: 0;
+        padding-left: 0;
+    }
+    .movie-votes {
+        color: #ccc;
+        padding-left: 0;
+    }
+    .movie-trending {
+        color: #ff3700;
+        font-weight: bold;
+    }
+    .main-container {
+        padding-top: 100px;
+        max-width: 1000px;
+        margin: 0 auto;
+        padding-left: 20px;
+        padding-right: 20px;
+    }
+    .page-title {
+        text-align: center;
+        margin-bottom: 30px;
+        font-size: 2.5rem;
+        color: #f7971e;
+    }
+    .page-description {
+        text-align: center;
+        max-width: 800px;
+        margin: 0 auto 40px;
+        color: #ccc;
+        line-height: 1.6;
+    }
+    .no-poster {
+        width: 50px;
+        height: 75px;
+        background-color: #333;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #ccc;
+        font-size: 0.8rem;
+        text-align: center;
+        padding: 5px;
+        margin-right: 20px;
+        border-radius: 4px;
+    }
+    #back-to-top {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: #f7971e;
+        color: white;
+        width: 50px;
+        height: 50px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 1000;
+        opacity: 0;
+        transition: opacity 0.3s;
+        box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+    }
+    #back-to-top.visible {
+        opacity: 1;
+    }
+    .nav-links li {
+        position: relative;
+    }
+    .dropdown-menu {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: -30px;
+        background-color: rgba(0, 0, 0, 0.9);
+        min-width: 200px;
+        box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+        border-radius: 4px;
+        z-index: 1000;
+        padding: 8px 0;
+    }
+    .nav-links li:hover .dropdown-menu {
+        display: block;
+    }
+    .dropdown-menu a {
+        color: white;
+        padding: 12px 16px;
+        text-decoration: none;
+        display: block;
+        transition: background-color 0.3s;
+        white-space: nowrap;
+    }
+    .dropdown-menu a:hover {
+        background-color: rgba(247, 151, 30, 0.2);
+    }
+    .dropdown-menu a.active {
+        background-color: rgba(247, 151, 30, 0.3);
+    }
+    @media screen and (max-width: 768px) {
+        .dropdown-menu {
+            position: static;
+            background-color: transparent;
+            box-shadow: none;
+            padding-left: 20px;
+        }
+        .dropdown-menu a {
+            padding: 10px 15px;
+        }
+    }
+    .sort-button {
+        position: absolute;
+        top: -40px;
+        right: 20px;
+        background-color: #064c86;
+        color: white;
+        border: none;
+        border-radius: 20px;
+        padding: 10px 20px;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: background-color 0.3s;
+    }
+    .sort-button:hover {
+        background-color: #1976D2;
+    }
+    .sort-lines {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+        align-items: center;
+        width: 20px;
+    }
+    .sort-line {
+        height: 2px;
+        background-color: white;
+    }
+    .sort-line:nth-child(1) {
+        width: 20px;
+    }
+    .sort-line:nth-child(2) {
+        width: 15px;
+        margin-left: 2.5px;
+    }
+    .sort-line:nth-child(3) {
+        width: 10px;
+        margin-left: 5px;
+    }
+    .popup-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0, 0, 0, 0.7);
+        z-index: 1000;
+        justify-content: center;
+        align-items: center;
+    }
+    .popup-content {
+        background-color: #1a1a1a;
+        padding: 20px;
+        border-radius: 10px;
+        width: 85%;
+        max-width: 680px;
+        max-height: 90vh;
+        min-height: 600px;
+        overflow-y: auto;
+        overflow-x: hidden;
+        position: relative;
+        scrollbar-width: thin;
+        scrollbar-color: #f7c948 #222;
+        box-sizing: border-box;
+    }
+    .popup-content::-webkit-scrollbar {
+        width: 10px;
+    }
+    .popup-content::-webkit-scrollbar-thumb {
+        background: #f7c948;
+        border-radius: 8px;
+    }
+    .popup-content::-webkit-scrollbar-track {
+        background: #222;
+        border-radius: 8px;
+    }
+    .popup-close {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        background: none;
+        border: none;
+        padding: 5px;
+    }
+    .popup-title {
+        color: #f7c948;
+        font-size: 1rem;
+        margin-bottom: 20px;
+        text-align: left;
+        font-weight: bold;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+    .genre-list {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        column-gap: 4px;
+        row-gap: 10px;
+        padding: 10px 0;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .genre-item {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 4px;
+        padding: 6px 4px;
+        margin: 0;
+        font-size: 0.95rem;
+        font-weight: 600;
+        color: #fff;
+        border: 2px solid #fff;
+        border-radius: 999px;
+        background-color: transparent;
+        cursor: pointer;
+        transition: all 0.2s ease-in-out;
+        white-space: nowrap;
+        box-sizing: border-box;
+        width: 200px !important;
+    }
+    .genre-item:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+    }
+    .genre-item.selected {
+        background-color: #f7c948;
+        color: #000;
+        border-color: #f7c948;
+    }
+    .genre-item:hover:not(.selected) {
+        background: rgba(247, 201, 72, 0.2);
+        color: #fff;
+        border: 2px solid #f7c948;
+    }
+    .popup-content form {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .popup-content form > div {
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .popup-content form > div > div {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        flex-wrap: nowrap;
+        width: 100%;
+        box-sizing: border-box;
+    }
+    .popup-content form input[type="number"] {
+        flex: 1;
+        min-width: 0;
+        background: transparent;
+        border: 2px solid #3a3a3a;
+        border-radius: 6px;
+        color: white;
+        font-size: 1.1rem;
+        padding: 14px 16px;
+        outline: none;
+        box-sizing: border-box;
+        transition: border-color 0.2s;
+    }
+    .popup-content form input[type="number"]:focus {
+        border-color: #3fa7ff;
+    }
+    .popup-content form label {
+        display:block; color:#f7c948; font-weight:600; letter-spacing:1px; margin-bottom:8px; font-size:1rem; text-transform:uppercase;
+    }
+    .popup-content form .tmdb-rating-inputs > div {
+        flex: 1 1 220px;
+        min-width: 200px;
+    }
+    .popup-content form .tmdb-rating-inputs {
+        display: flex; gap: 32px; flex-wrap: wrap;
+    }
+    .user-icon-container {
+        position: relative;
+        display: inline-block;
+    }
+    .user-icon {
+        color: white;
+        font-size: 24px;
+        cursor: pointer;
+        transition: color 0.3s;
+    }
+    .user-icon:hover {
+        color: #0047b3;
+    }
+    .user-tooltip {
+        display: none;
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        padding: 8px 15px;
+        border-radius: 6px;
+        font-size: 14px;
+        white-space: nowrap;
+        box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(10px);
+        border: 1px solid #0047b3;
+        z-index: 1000;
+        opacity: 0;
+        transform: translateY(10px);
+        transition: all 0.3s ease;
+        margin-top: 10px;
+    }
+    .user-icon-container:hover .user-tooltip {
+        display: block;
+        opacity: 1;
+        transform: translateY(0);
+    }
+    .user-tooltip::after {
+        content: '';
+        position: absolute;
+        top: -5px;
+        right: 20px;
+        width: 10px;
+        height: 10px;
+        background: rgba(0, 0, 0, 0.9);
+        transform: rotate(45deg);
+        border-left: 1px solid #0047b3;
+        border-top: 1px solid #0047b3;
+    }
+    .footer {
+        background: rgba(0, 0, 0, 0.9);
+        color: white;
+        text-align: center;
+        padding: 20px 0;
+        margin-top: 50px;
+        border-top: 2px solid #0047b3;
+    }
+    .footer-content {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 0 20px;
+    }
+    .footer span {
+        font-size: 14px;
+        color: #999;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <h1 class="page-title">Trending Movies</h1>
+    <p class="page-description">
+        Discover what's currently popular. This list is updated regularly to show which movies are currently trending.
+    </p>
+
+    <div id="movies-container">
+        {% set filters = [] %}
+        {% if request.args.get('genre') %}{% set _ = filters.append('Genre: ' ~ request.args.get('genre')) %}{% endif %}
+        {% if request.args.get('year_from') or request.args.get('year_to') %}
+            {% set _ = filters.append('Year: ' ~ (request.args.get('year_from') or 'Any') ~ ' to ' ~ (request.args.get('year_to') or 'Any')) %}
+        {% endif %}
+        {% if request.args.get('rating_from') or request.args.get('rating_to') %}
+            {% set _ = filters.append('Rating: ' ~ (request.args.get('rating_from') or 'Any') ~ ' to ' ~ (request.args.get('rating_to') or 'Any')) %}
+        {% endif %}
+        {% if request.args.get('votes_from') or request.args.get('votes_to') %}
+            {% set _ = filters.append('Votes: ' ~ (request.args.get('votes_from') or 'Any') ~ ' to ' ~ (request.args.get('votes_to') or 'Any')) %}
+        {% endif %}
+        {% if filters %}
+            <div class="active-filters">
+                <strong>Active Filters:</strong> {{ filters|join(' | ') }}
+                <a href="/trending" style="color: #ff6b6b; margin-left: 15px; text-decoration: underline;">Clear</a>
+            </div>
+        {% endif %}
+
+        <!-- Trending Movies Section -->
+        <div class="movie-section">
+            <button class="sort-button" onclick="toggleSort()">
+                <i class="fa fa-filter"></i> Filters
+            </button>
+            <ul class="movie-list">
+                {% for movie in movies %}
+                <li class="movie-item">
+                    <a href="/movie/{{ movie.titre }}" style="display: flex; align-items: center; width: 100%; text-decoration: none; color: inherit;">
+                        <div class="movie-rank">#{{ (page - 1) * 100 + loop.index }}</div>
+                        {% if movie.poster %}
+                        <img src="{{ movie.poster }}" alt="{{ movie.titre }}" class="movie-poster">
+                        {% else %}
+                        <div class="no-poster">No poster</div>
+                        {% endif %}
+                        <div class="movie-info">
+                            <div class="movie-title">{{ movie.titre }}</div>
+                            <div class="movie-details">
+                                <span class="movie-year"><strong>Year:</strong> {{ movie.year }}</span>
+                                <span class="movie-trending">
+                                    <i class="fa fa-line-chart"></i>
+                                    <strong>{{ "%.2f"|format(movie.trending_score) }}</strong>
+                                </span>
+                                <span class="movie-rating">
+                                    <i class="fa fa-star"></i>
+                                    {{ movie.rating }}
+                                </span>
+                                <span class="movie-votes">
+                                    <i class="fa fa-users"></i>
+                                    {{ movie.votes|int }}
+                                </span>
+                            </div>
+                        </div>
+                    </a>
+                </li>
+                {% else %}
+                <li style="text-align: center; padding: 40px; color: #ccc;">No trending movies found with the selected filters.</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Popup -->
+<div class="popup-overlay" id="genrePopup">
+    <div class="popup-content">
+        <button class="popup-close" onclick="closePopup()">&times;</button>
+        <h2 class="popup-title">GENRES</h2>
+        <form method="get" action="/trending">
+            <input type="hidden" name="genre" id="genre-input" value="{{ request.args.get('genre', '') }}">
+            <div class="genre-list" id="genreList">
+                {% for genre, count in genre_counts.items() %}
+                <div class="genre-item{% if request.args.get('genre') == genre %} selected{% endif %}" onclick="selectGenre(this, '{{ genre }}')">
+                    <span class="genre-name">{{ genre }}</span><span class="genre-count">({{ count }})</span>
+                </div>
+                {% endfor %}
+            </div>
+            <hr style="border: none; border-top: 2px solid #444; margin: 24px 0;">
+            <div style="margin-bottom: 0;">
+                <label for="year-from" style="display:block; color:#f7c948; font-weight:600; letter-spacing:1px; margin-bottom:8px; font-size:1rem; text-transform:uppercase;">Release Year</label>
+                <div style="display:flex; align-items:center; gap:16px;">
+                    <input id="year-from" name="year_from" type="number" placeholder=" " min="1900" max="2100" style="background:transparent; border:2px solid #3a3a3a; border-radius:6px; color:white; font-size:1.1rem; padding:10px 12px; outline:none; width:100%; box-sizing:border-box; transition:border-color 0.2s;" value="{{ request.args.get('year_from', '') }}">
+                    <span style="color:#fff; font-size:1.2rem;">to</span>
+                    <input id="year-to" name="year_to" type="number" placeholder=" " min="1900" max="2100" style="background:transparent; border:2px solid #3a3a3a; border-radius:6px; color:white; font-size:1.1rem; padding:10px 12px; outline:none; width:100%; box-sizing:border-box; transition:border-color 0.2s;" value="{{ request.args.get('year_to', '') }}">
+                </div>
+            </div>
+            <hr style="border: none; border-top: 2px solid #444; margin: 24px 0;">
+            <div style="margin-bottom: 0;">
+                <label style="display:block; color:#f7c948; font-weight:600; letter-spacing:1px; margin-bottom:8px; font-size:1rem; text-transform:uppercase;">TMDB Ratings</label>
+                <div style="display: flex; gap: 32px; flex-wrap: wrap;">
+                    <div style="flex: 1 1 220px; min-width: 200px;">
+                        <label style="display:block; color:#fff; font-weight:600; letter-spacing:1px; margin-bottom:8px; font-size:0.95rem; text-transform:uppercase;">User Rating</label>
+                        <div style="display:flex; align-items:center; gap:16px;">
+                            <input name="rating_from" type="number" step="0.1" min="1" max="10" placeholder="1.0" style="background:transparent; border:2px solid #3a3a3a; border-radius:6px; color:white; font-size:1.1rem; padding:14px 16px; outline:none; width:100%; box-sizing:border-box; transition:border-color 0.2s;" value="{{ request.args.get('rating_from', '') }}">
+                            <span style="color:#fff; font-size:1.2rem;">to</span>
+                            <input name="rating_to" type="number" step="0.1" min="1" max="10" placeholder="10.0" style="background:transparent; border:2px solid #3a3a3a; border-radius:6px; color:white; font-size:1.1rem; padding:14px 16px; outline:none; width:100%; box-sizing:border-box; transition:border-color 0.2s;" value="{{ request.args.get('rating_to', '') }}">
+                        </div>
+                    </div>
+                </div>
+                <div style="height: 24px;"></div>
+                <div style="display: flex; gap: 32px; flex-wrap: wrap;">
+                    <div style="flex: 1 1 220px; min-width: 200px;">
+                        <label style="display:block; color:#fff; font-weight:600; letter-spacing:1px; margin-bottom:8px; font-size:0.95rem; text-transform:uppercase;">Number of Votes</label>
+                        <div style="display:flex; align-items:center; gap:16px;">
+                            <input name="votes_from" type="number" min="0" placeholder="" style="background:transparent; border:2px solid #3a3a3a; border-radius:6px; color:white; font-size:1.1rem; padding:14px 16px; outline:none; width:100%; box-sizing:border-box; transition:border-color 0.2s;" value="{{ request.args.get('votes_from', '') }}">
+                            <span style="color:#fff; font-size:1.2rem;">to</span>
+                            <input name="votes_to" type="number" min="0" placeholder="" style="background:transparent; border:2px solid #3a3a3a; border-radius:6px; color:white; font-size:1.1rem; padding:14px 16px; outline:none; width:100%; box-sizing:border-box; transition:border-color 0.2s;" value="{{ request.args.get('votes_to', '') }}">
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    // Javascript for popup, identical to top_movies.html
+    function toggleSort() {
+        document.getElementById('genrePopup').style.display = 'flex';
+    }
+    function closePopup() {
+        document.getElementById('genrePopup').style.display = 'none';
+    }
+    function selectGenre(element, genre) {
+        // ... (genre selection logic) ...
+    }
+    window.onclick = function(event) {
+        if (event.target == document.getElementById('genrePopup')) {
+            closePopup();
+        }
+    }
+</script>
+{% endblock %} 

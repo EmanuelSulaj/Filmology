@@ -1,0 +1,80 @@
+{% extends "base.html" %}
+
+{% block additional_styles %}
+<style>
+    /* Add any page-specific styles if needed */
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="main-container">
+    <h1 class="page-title">My Watch History</h1>
+    <div id="watched-movies-list" class="movie-grid">
+        <!-- Watched movies will be loaded here by JavaScript -->
+        <div class="loading" style="text-align:center; padding:2rem; color:#999; grid-column: 1 / -1;">
+            <i class="fa fa-spinner fa-spin fa-2x"></i>
+            <p>Loading your watched movies...</p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+{{ super() }}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        firebase.auth().onAuthStateChanged(function(user) {
+            if (user) {
+                loadWatchHistory(user.uid);
+            } else {
+                // User is not logged in
+                const container = document.getElementById('watched-movies-list');
+                container.innerHTML = `
+                    <div style="text-align:center; padding:2rem; color:#999; grid-column: 1 / -1;">
+                        <p>Please <a href="/auth_page">log in</a> to see your watch history.</p>
+                    </div>
+                `;
+            }
+        });
+    });
+
+    function loadWatchHistory(uid) {
+        const db = firebase.firestore();
+        const container = document.getElementById('watched-movies-list');
+        
+        db.collection('watched').doc(uid).get().then(doc => {
+            if (doc.exists && doc.data().movies && doc.data().movies.length > 0) {
+                const movies = doc.data().movies;
+                container.innerHTML = ''; // Clear loading indicator
+
+                movies.forEach(movie => {
+                    const movieCard = document.createElement('div');
+                    movieCard.className = 'movie-card';
+                    movieCard.innerHTML = `
+                        <a href="/movie/${movie.title}">
+                            <img src="${movie.poster}" alt="${movie.title}" class="movie-poster">
+                            <div class="movie-info">
+                                <h3 class="movie-title">${movie.title}</h3>
+                            </div>
+                        </a>
+                    `;
+                    container.appendChild(movieCard);
+                });
+            } else {
+                container.innerHTML = `
+                    <div style="text-align:center; padding:2rem; color:#999; grid-column: 1 / -1;">
+                        <p>You haven't watched any movies yet.</p>
+                    </div>
+                `;
+            }
+        }).catch(error => {
+            console.error("Error fetching watch history: ", error);
+            container.innerHTML = `
+                <div style="text-align:center; padding:2rem; color:red; grid-column: 1 / -1;">
+                    <p>Sorry, there was an error loading your watch history.</p>
+                </div>
+            `;
+        });
+    }
+</script>
+{% endblock %} 
